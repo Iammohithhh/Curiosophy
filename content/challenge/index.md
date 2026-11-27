@@ -16,6 +16,9 @@ The [Discovered Materials speed–accuracy challenge](https://grandchallenges.di
 
 I want to understand this problem before trying to improve anything. This page follows the literature as a sequence of questions. The separate [[papers/index|paper notes]] examine particular breakthroughs; the [[learnings/index|learning notes]] slow down where the mathematics needs more room.
 
+> [!info] Looking for the paper deep dives?
+> **[[papers/index|Open all 13 paper deep dives →]]** Each is a separate, detailed page. Start with [[papers/pbe|PBE]], or jump ahead to [[papers/dm21|DM21]] and [[papers/skala|Skala]]. The article below connects their ideas into one story.
+
 ## A small energy difference can change the chemistry
 
 Imagine two reactants approaching. Their electrons rearrange. One bond weakens, another forms, and eventually the system reaches a new configuration. A calculation can assign an electronic energy to each arrangement of the nuclei. Together, those energies describe a **potential-energy surface**.
@@ -188,12 +191,12 @@ The breakthroughs become easier to follow when separated by the question each as
 
 | Idea | The question it changes |
 |---|---|
-| [[papers/learning-density-functionals|Learning a functional from examples]] | Can a flexible model approximate a map from a density to an energy? |
-| [[papers/kohn-sham-regularizer|Training through Kohn–Sham iterations]] | Can the solver supply physical structure during learning? |
-| [[papers/dm21|DM21]] | Can fractional-charge and fractional-spin examples address known failure modes? |
-| [[papers/cider|CIDER]] | Can constrained nonlocal descriptors replace costly exchange information? |
-| [[papers/equivariant-functionals|Equivariant graph functionals]] | Can density information be compressed and communicated efficiently? |
-| [[papers/skala|Skala]] | Can learned nonlocal representations and diverse accurate data improve the accuracy–cost trade-off? |
+| [Learning a functional from examples](../papers/learning-density-functionals.md) | Can a flexible model approximate a map from a density to an energy? |
+| [Training through Kohn–Sham iterations](../papers/kohn-sham-regularizer.md) | Can the solver supply physical structure during learning? |
+| [DM21](../papers/dm21.md) | Can fractional-charge and fractional-spin examples address known failure modes? |
+| [CIDER](../papers/cider.md) | Can constrained nonlocal descriptors replace costly exchange information? |
+| [Equivariant graph functionals](../papers/equivariant-functionals.md) | Can density information be compressed and communicated efficiently? |
+| [Skala](../papers/skala.md) | Can learned nonlocal representations and diverse accurate data improve the accuracy–cost trade-off? |
 
 These are not interchangeable approaches. DM21 is a learned local hybrid and still uses exact-exchange ingredients. CIDER's earlier papers focus on learning exchange. Skala learns XC with a different nonlocal representation. A model that predicts energies directly from atomic coordinates is another category again: it can bypass DFT, but it is not necessarily an XC functional.
 
