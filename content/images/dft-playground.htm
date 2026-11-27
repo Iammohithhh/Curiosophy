@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Curiosophy — a small DFT idea laboratory</title>
+<style>
+:root{color-scheme:light;--ink:#203842;--teal:#007f80;--coral:#bd492d;--paper:#faf9f6}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.55 system-ui,sans-serif}main{max-width:900px;margin:auto;padding:22px}h1{font-size:24px;line-height:1.2;margin:0 0 8px}p{margin:8px 0 16px}.eyebrow{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--teal);font-weight:700}.tabs{display:flex;flex-wrap:wrap;gap:8px;margin:20px 0}button{font:inherit;background:#fff;color:var(--ink);border:1px solid #c2d2cc;border-radius:20px;padding:8px 14px;cursor:pointer}button[aria-pressed=true]{background:var(--teal);color:#fff;border-color:var(--teal)}button:focus-visible,input:focus-visible{outline:3px solid #d18a1f;outline-offset:3px}section[hidden]{display:none}label{display:block;font-weight:600;margin:12px 0}input{display:block;width:100%;accent-color:var(--teal);margin:10px 0}.controls{display:grid;grid-template-columns:1fr 1fr;gap:20px}svg{display:block;width:100%;height:auto;overflow:visible}svg text{font:14px system-ui,sans-serif;fill:var(--ink)}.card{background:#fff;border:1px solid #e0e4df;border-radius:12px;padding:12px;margin:16px 0}.readout{border-left:3px solid var(--teal);padding:10px 14px;background:#e6efea;min-height:70px}.legend{font-size:14px}.legend span{display:inline-block;margin-right:15px}.teal{color:var(--teal)}.coral{color:var(--coral)}.note{font-size:13px;color:#51646b}code{font-size:.95em}output{font-variant-numeric:tabular-nums}footer{margin-top:22px;border-top:1px solid #dbe1da;padding-top:12px;font-size:12px}.reset{font-size:13px;padding:6px 12px}
+@media(max-width:480px){main{padding:15px}.controls{grid-template-columns:1fr;gap:0}h1{font-size:21px}button{font-size:14px;padding:7px 10px}.card{padding:5px}svg text{font-size:15px}}
+</style>
+</head>
+<body><main>
+<div class="eyebrow">Curiosophy · idea laboratory</div><h1>Change one assumption. Watch the consequence.</h1>
+<p class="note">These are transparent toy models, not molecular calculations or measured timings.</p>
+<nav class="tabs" aria-label="Choose an experiment"><button type="button" data-panel="derivative" aria-pressed="true">Energy & derivative</button><button type="button" data-panel="charge" aria-pressed="false">Fractional charge</button><button type="button" data-panel="cost" aria-pressed="false">Scaling & overhead</button></nav>
+<section id="derivative" aria-label="Energy and derivative experiment">
+<p>Start with <code>E(x) = x²</code>. Add a small ripple <code>ε sin(ωx)</code>. Its derivative adds <code>εω cos(ωx)</code>.</p>
+<div class="controls"><label for="epsilon">Ripple size ε: <output id="epsilon-value">0.010</output><input id="epsilon" type="range" min="0" max="0.05" step="0.001" value="0.01"></label><label for="omega">Frequency ω: <output id="omega-value">100</output><input id="omega" type="range" min="1" max="150" step="1" value="100"></label></div>
+<div class="legend"><span class="teal">━ Reference</span><span class="coral">━ With ripple</span></div>
+<div class="card"><svg id="derivative-plot" viewBox="0 0 720 350" role="img" aria-label="Energy and derivative curves, updated by the sliders"></svg></div>
+<p class="readout" id="derivative-result" aria-live="polite"></p>
+<p class="note">Try keeping ε small while increasing ω. Values can remain close even when slopes differ greatly. A functional derivative is the corresponding idea for a whole input density. Plot scales stay fixed.</p>
+</section>
+<section id="charge" hidden aria-label="Fractional charge experiment">
+<p>Two identical, far-separated fragments share one extra electron. Let q go to fragment A and 1 − q to B.</p>
+<div class="controls"><label for="curvature">Artificial downward curvature c: <output id="curvature-value">0.60</output><input id="curvature" type="range" min="0" max="1" step="0.01" value="0.6"></label><label for="share">Electron share q on A: <output id="share-value">0.50</output><input id="share" type="range" min="0" max="1" step="0.01" value="0.5"></label></div>
+<div class="legend"><span class="teal">━ Exact ensemble reference</span><span class="coral">━ Curved approximation</span></div>
+<div class="card"><svg id="charge-plot" viewBox="0 0 720 300" role="img" aria-label="Spurious lowering of total energy as charge is shared"></svg></div>
+<p class="readout" id="charge-result" aria-live="polite"></p>
+<p class="note">Each fragment contributes a bias −c q(1 − q), so together the error is −2c q(1 − q). Energies are arbitrary units relative to the straight-line reference. At infinite separation, identical fragments have degenerate exact ensemble partitions; the curvature adds an artificial preference.</p>
+</section>
+<section id="cost" hidden aria-label="Scaling and overhead experiment">
+<p>Suppose the baseline costs <code>M³ + M⁴</code>: an orbital-solver term plus an expensive exchange-like term. Replace only the second term by <code>b M²</code>.</p>
+<div class="controls"><label for="prefactor">New component prefactor b: <output id="prefactor-value">8</output><input id="prefactor" type="range" min="1" max="40" step="1" value="8"></label><label for="size">Relative size M: <output id="size-value">2.0</output><input id="size" type="range" min="1" max="10" step="0.1" value="2"></label></div>
+<div class="legend"><span class="coral">━ Baseline: M³ + M⁴</span><span class="teal">━ Replacement: M³ + bM²</span></div>
+<div class="card"><svg id="cost-plot" viewBox="0 0 720 300" role="img" aria-label="Illustrative total cost on a logarithmic vertical scale"></svg></div>
+<p class="readout" id="cost-result" aria-live="polite"></p>
+<p class="note">The prefactor can outweigh a better exponent at small sizes. Both totals retain a cubic component. These powers are an invented demonstration, not timings or a model of Skala, CIDER or any software package.</p>
+</section>
+<button type="button" class="reset" id="reset">Reset all experiments</button>
+<noscript><p>The controls require JavaScript. The surrounding article also explains these ideas with static diagrams and equations.</p></noscript>
+<footer>Original educational visualization · Curiosophy · All formulas shown above.</footer>
+</main>
+<script>
+'use strict';
+const $=id=>document.getElementById(id), NS='http://www.w3.org/2000/svg';
+function el(tag,attrs={},txt){const e=document.createElementNS(NS,tag);for(const [k,v] of Object.entries(attrs))e.setAttribute(k,v);if(txt!==undefined)e.textContent=txt;return e;}
+function plot(svg,box,domain,title,xlabel,ylabel,series,ticks,marker){
+ const [x,y,w,h]=box,[xmin,xmax,ymin,ymax]=domain;
+ const X=v=>x+(v-xmin)/(xmax-xmin)*w,Y=v=>y+h-(v-ymin)/(ymax-ymin)*h;
+ svg.append(el('text',{x:x,y:y-17,'font-weight':'700'},title));
+ svg.append(el('path',{d:`M${x} ${y}V${y+h}H${x+w}`,fill:'none',stroke:'#9aaba8'}));
+ for(const t of ticks.y){const pos=typeof t==='number'?t:t[0],label=typeof t==='number'?String(t):t[1];svg.append(el('line',{x1:x,y1:Y(pos),x2:x+w,y2:Y(pos),stroke:'#e9eeeb'}));svg.append(el('text',{x:x-9,y:Y(pos)+5,'text-anchor':'end'},label));}
+ for(const t of ticks.x){svg.append(el('text',{x:X(t),y:y+h+22,'text-anchor':'middle'},String(t)));}
+ svg.append(el('text',{x:x+w/2,y:y+h+46,'text-anchor':'middle'},xlabel));
+ if(ylabel)svg.append(el('text',{x:x-42,y:y+h/2,transform:`rotate(-90 ${x-42} ${y+h/2})`,'text-anchor':'middle'},ylabel));
+ for(const [fn,color] of series){let d='';for(let i=0;i<=900;i++){const t=xmin+(xmax-xmin)*i/900;d+=(i?'L':'M')+X(t).toFixed(2)+' '+Y(fn(t)).toFixed(2);}svg.append(el('path',{d,fill:'none',stroke:color,'stroke-width':2.3}));}
+ if(marker){const [mx,my,color]=marker;svg.append(el('line',{x1:X(mx),x2:X(mx),y1:y,y2:y+h,stroke:'#7f8b88','stroke-dasharray':'4 4'}));svg.append(el('circle',{cx:X(mx),cy:Y(my),r:5,fill:color,stroke:'#fff','stroke-width':2}));}
+}
+function update(){
+ const eps=+$('epsilon').value,omega=+$('omega').value,c=+$('curvature').value,q=+$('share').value,b=+$('prefactor').value,m=+$('size').value;
+ for(const [id,val] of [['epsilon',eps.toFixed(3)],['omega',omega],['curvature',c.toFixed(2)],['share',q.toFixed(2)],['prefactor',b],['size',m.toFixed(1)]])$(id+'-value').textContent=val;
+ const d=$('derivative-plot');d.replaceChildren();
+ plot(d,[55,45,280,230],[0,1,-.1,1.1],'Energy','x','',[ [x=>x*x,'#007f80'],[x=>x*x+eps*Math.sin(omega*x),'#bd492d']],{x:[0,.5,1],y:[0,.5,1]});
+ plot(d,[410,45,280,230],[0,1,-8,10],'Derivative','x','',[[x=>2*x,'#007f80'],[x=>2*x+eps*omega*Math.cos(omega*x),'#bd492d']],{x:[0,.5,1],y:[-5,0,5,10]});
+ $('derivative-result').textContent=`Maximum ripple in the energy: ${eps.toFixed(3)}. Maximum ripple in the derivative: ${(eps*omega).toFixed(3)}. The derivative amplitude is ${omega} times the energy amplitude.`;
+ const ch=$('charge-plot');ch.replaceChildren();plot(ch,[70,40,610,195],[0,1,-.55,.05],'Total energy error from sharing one electron','q on fragment A','Energy error',[[x=>0,'#007f80'],[x=>-2*c*x*(1-x),'#bd492d']],{x:[0,.25,.5,.75,1],y:[-.5,-.25,0]},[q,-2*c*q*(1-q),'#bd492d']);
+ $('charge-result').textContent=c===0?'With no curvature, every partition has the same exact-reference energy in this idealized identical-fragment limit.':`At q = ${q.toFixed(2)}, the spurious energy lowering is ${(2*c*q*(1-q)).toFixed(3)}. The largest artificial lowering is ${(c/2).toFixed(3)}, at equal sharing (q = 0.50).`;
+ const co=$('cost-plot');co.replaceChildren();plot(co,[70,40,610,195],[1,10,0,4.3],'Illustrative total cost (logarithmic axis)','Relative size M','Cost',[[x=>Math.log10(x**3+x**4),'#bd492d'],[x=>Math.log10(x**3+b*x*x),'#007f80']],{x:[1,2,4,6,8,10],y:[[0,'1'],[1,'10'],[2,'100'],[3,'1,000'],[4,'10,000']]},[m,Math.log10(m**3+b*m*m),'#007f80']);
+ const old=m**3+m**4,ne=m**3+b*m*m;
+ $('cost-result').textContent=`At M = ${m.toFixed(1)}: baseline cost ${old.toFixed(1)}, replacement cost ${ne.toFixed(1)}. ${old>=ne?`Total speedup: ${(old/ne).toFixed(2)}×.`:`The replacement is ${(ne/old).toFixed(2)}× slower.`} The crossover is M = √b ≈ ${Math.sqrt(b).toFixed(2)}.`;
+}
+document.querySelectorAll('input').forEach(e=>e.addEventListener('input',update));
+document.querySelectorAll('[data-panel]').forEach(btn=>btn.addEventListener('click',()=>{document.querySelectorAll('[data-panel]').forEach(b=>b.setAttribute('aria-pressed',String(b===btn)));document.querySelectorAll('main>section').forEach(s=>s.hidden=s.id!==btn.dataset.panel);}));
+$('reset').addEventListener('click',()=>{for(const [id,val] of Object.entries({epsilon:.01,omega:100,curvature:.6,share:.5,prefactor:8,size:2}))$(id).value=val;update();});
+update();
+</script></body></html>

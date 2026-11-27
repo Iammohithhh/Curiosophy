@@ -56,6 +56,8 @@ $$
 
 Ground-state density functional theory establishes that this density can be the basic variable of an exact energy theory, under the usual conditions. That is a profound reduction in the description. It does **not** hand us a simple formula for the energy.
 
+One caution will follow us throughout: knowing that a map exists is different from having a compact, accurate way to evaluate it. Machine learning changes how we approximate the map. It does not remove the distinction.
+
 If the square brackets and integrals feel like a jump, pause at [[learnings/functionals-and-derivatives|What is a functional, and why do its derivatives matter?]] We will need that distinction repeatedly.
 
 ## The bargain Kohn–Sham DFT makes
@@ -88,6 +90,8 @@ The factor $1/2$ avoids counting each pair twice. But this expression also assig
 
 Exchange is a consequence of fermionic antisymmetry. Correlation describes additional electron coordination beyond the independent-particle reference. Both influence the chance of finding another electron near a chosen electron. The useful picture is a **hole** in that conditional probability, not a literal cavity in the molecule.
 
+The [[learnings/orbitals-density-and-holes|orbital, density and exchange-hole detour]] derives the orbital equation, explains what a basis matrix means and shows why the missing probability around an electron integrates to one electron. Those details make “exchange” much less of a label to memorize.
+
 The exact XC functional would complete this energy expression. In practice we also make numerical and modelling choices: finite basis sets, grids, pseudopotentials where used, convergence thresholds and usually the fixed-nuclei approximation. XC is the major unknown functional, not the only possible source of error.
 
 ## Why predicting an energy is only half the job
@@ -110,6 +114,14 @@ A one-variable analogy makes the issue visible. Start with a smooth energy $f(x)
 
 That is why a learned functional cannot be judged only by predictions on fixed, convenient densities. Does it produce sensible potentials? Does the calculation converge? Does the resulting density support accurate forces and response properties? These questions will lead us to differentiable DFT.
 
+Try the first experiment below. Keep the energy ripple small, then increase its frequency. The derivative can become poor while the energy curves remain deceptively close. The other two experiments will connect to fractional charge and scaling later in the story.
+
+<iframe src="../images/dft-playground.htm" title="Interactive laboratory: energy derivatives, fractional charge and scaling" loading="lazy" style="width:100%;height:930px;border:1px solid #c2d2cc;border-radius:12px" sandbox="allow-scripts"></iframe>
+
+[Open the laboratory on its own](../images/dft-playground.htm). All three experiments use explicitly stated toy formulas; none reports a molecular calculation.
+
+There is another subtlety. A poor energy can come from the formula itself, the density supplied to it, or both. [[papers/density-corrected-dft|Kim, Sim and Burke's error decomposition]] makes this separation precise. It is worth learning before deciding what a new model should optimize.
+
 ## First idea: understand each point using its neighbourhood
 
 The local-density approximation, LDA, replaces a complicated environment with a uniform electron gas at the same density. We evaluate an energy contribution at each point and integrate:
@@ -122,6 +134,8 @@ $$
 A molecule is not a uniform gas. The density rises near nuclei and falls between fragments. A generalized gradient approximation, GGA, adds the local rate of change, $\nabla n$. **PBE** is the landmark example of choosing that dependence using physical constraints.
 
 A meta-GGA adds more information, commonly the orbital kinetic-energy density $\tau$. **SCAN** uses this richer description to distinguish local electronic environments while satisfying conditions that an admissible approximation should obey.
+
+The [[papers/pbe|PBE close reading]] works through its exchange enhancement curve and limiting behaviour. The [[papers/scan|SCAN close reading]] derives the environment indicator $\alpha$. Read them as two answers to successive questions: *what constraints should the formula obey, and what additional information would help it tell environments apart?*
 
 ![[functional-information.png]]
 
@@ -146,6 +160,8 @@ Why is this useful? The exact-exchange expression involves pairs of occupied orb
 
 Range-separated hybrids treat different distance ranges differently. Double hybrids add a perturbative correlation contribution. Each is a way to acquire more useful information, with a computational bill attached. Efficient integral algorithms can reduce that bill; the functional family alone does not determine the runtime.
 
+The [[papers/becke-hybrids|Becke paper note]] connects the mixture to the adiabatic connection and writes out the two-position exchange integral. The [[learnings/nonlocality-and-cost|nonlocality and cost guide]] then separates screened exchange, range separation, double hybrids and dispersion. They solve different pieces of the problem.
+
 ## What kind of scaling are we talking about?
 
 There are at least three distinct expenses: the cost of one XC evaluation, the cost of a complete self-consistent calculation, and the cost of the many calculations needed for a scientific prediction.
@@ -160,6 +176,8 @@ The physics behind locality is encouraging: in suitable systems, distant changes
 
 For the challenge, the useful question is not just “what is the exponent?” It is “how long does the whole calculation take, at comparable accuracy, on the relevant molecules?”
 
+In the laboratory's scaling experiment, replace an expensive component with a lower-power expression but give it a large prefactor. It initially becomes slower. At larger sizes it wins, yet the untouched cubic component remains. This is why neither an exponent nor the speed of one neural-network evaluation is enough to describe a complete calculation.
+
 ## Third idea: learn the missing functional
 
 It is tempting to write $E_{\mathrm{xc}}=\mathrm{neural\ network}(n)$ and declare the problem solved. But that leaves almost everything important unspecified.
@@ -170,16 +188,48 @@ The breakthroughs become easier to follow when separated by the question each as
 
 | Idea | The question it changes |
 |---|---|
-| Learning a functional from examples | Can a flexible model approximate a map from a density to an energy? |
-| Training through Kohn–Sham iterations | Can the solver supply physical structure during learning? |
-| DM21 | Can fractional-charge and fractional-spin examples address known failure modes? |
-| CIDER | Can constrained nonlocal descriptors replace costly exchange information? |
-| Equivariant graph functionals | Can density information be compressed and communicated efficiently? |
-| Skala | Can learned nonlocal representations and diverse accurate data improve the accuracy–cost trade-off? |
+| [[papers/learning-density-functionals|Learning a functional from examples]] | Can a flexible model approximate a map from a density to an energy? |
+| [[papers/kohn-sham-regularizer|Training through Kohn–Sham iterations]] | Can the solver supply physical structure during learning? |
+| [[papers/dm21|DM21]] | Can fractional-charge and fractional-spin examples address known failure modes? |
+| [[papers/cider|CIDER]] | Can constrained nonlocal descriptors replace costly exchange information? |
+| [[papers/equivariant-functionals|Equivariant graph functionals]] | Can density information be compressed and communicated efficiently? |
+| [[papers/skala|Skala]] | Can learned nonlocal representations and diverse accurate data improve the accuracy–cost trade-off? |
 
 These are not interchangeable approaches. DM21 is a learned local hybrid and still uses exact-exchange ingredients. CIDER's earlier papers focus on learning exchange. Skala learns XC with a different nonlocal representation. A model that predicts energies directly from atomic coordinates is another category again: it can bypass DFT, but it is not necessarily an XC functional.
 
 This is where the investigation becomes especially interesting. We can ask whether the important advance comes from better data, better physical constraints, a more informative representation, a better training objective, or a faster implementation. Usually several of these interact.
+
+## The first lesson from learning: a good fit is not yet a good functional
+
+Snyder and colleagues' 2012 model learned a kinetic-energy functional for a one-dimensional system. The values looked promising. The derivative needed to find a density was much harder. The model had seen a restricted family of densities, not every possible way of changing a density grid. It could interpolate familiar examples without knowing how to guide a search in every direction.
+
+There are several responses to this difficulty. [[papers/bypassing-kohn-sham|Brockherde et al.]] learned the map to the density directly, bypassing that search. [[papers/neuralxc|NeuralXC]] built a differentiable correction from atom-centred density projections. [[papers/kohn-sham-regularizer|Li et al.]] trained through the solver, so the network was judged by the densities and energies its own approximation produced.
+
+These are different interventions. It helps to draw the computational pipeline and mark exactly which arrow is learned. Is the network predicting an energy, a density, an XC correction, or a potential? Does it run before the electronic calculation, inside every iteration, or after convergence?
+
+The [[learnings/architectures-without-mystery|architecture guide]] starts with a real paper diagram and explains projections, hidden layers, convolutions and message passing one operation at a time. The network becomes easier to understand when we ask what information each operation receives and what symmetry it preserves.
+
+## A fractional electron is a very useful question
+
+Ordinary training molecules tend to have integer electron counts. Yet a functional's behaviour between those integers reveals whether it artificially rewards spreading charge. The exact ensemble energy follows straight segments between adjacent integer states. Many approximations bow below those segments.
+
+For two far-separated identical fragments sharing an extra electron, downward curvature can make a half-electron on each fragment artificially too favourable. The laboratory's fractional-charge experiment isolates this effect. Set the curvature to zero, then restore it and move the charge slider. The model develops a preference that was absent from the reference.
+
+This is why [[papers/dm21|DM21's fractional-charge and fractional-spin training]] is more than a larger dataset. It targets specific failures of the energy surface. The spin condition addresses another difficulty, connected to degenerate states and stretched bonds. Charge and spin constraints should not be collapsed into one generic claim about “physical correctness.”
+
+DM21 still pays for exact-exchange features. That leaves the next question open: can we obtain useful nonlocal information more cheaply?
+
+## From handcrafted neighbourhoods to learned representations
+
+[[papers/cider|CIDER]] chooses nonlocal density summaries whose length scales transform correctly when the electron cloud is compressed. A learned exchange model then works with those physically organized inputs. The [[papers/cider-molecules-and-solids|2024 extension]] tests the strategy in molecules and solids, including semiconductor defects. This gives the cost discussion a concrete materials setting.
+
+[[papers/equivariant-functionals|EG-XC]] compresses density near nuclei and lets the representations communicate through a graph. [[papers/skala|Skala]] uses a fine-to-coarse-to-fine architecture and a much larger accurate training collection. Both show why it can be more productive to improve the representation than merely deepen a network acting on the same local inputs.
+
+The distinction is easy to miss. A local input feature does not force a local final prediction if later layers exchange information across space. Conversely, a large network evaluated independently at each point remains restricted by the information available at that point.
+
+Skala's revised paper reports a strong main-group benchmark result, but some subsets remain difficult and its reported comparisons include a dispersion correction. Its useful lesson is that learned nonlocal information can shift the trade-off. Its evidence does not imply that every class of electronic problem is now solved.
+
+The [[learnings/frontier-2026|2026 frontier]] continues along three related directions: supervising derivatives more directly, extending coverage to surfaces and solids, and representing the density matrix more explicitly. Those recent results are worth following with the same questions we have developed here.
 
 ## What would convince me?
 
@@ -191,6 +241,8 @@ Training overlap matters too. With learned methods, a benchmark can become part 
 
 The source of the reference energies matters. Coupled-cluster methods provide excellent references for many single-reference molecules, but CCSD(T) is not universally exact. Basis extrapolation reduces one source of error without removing every other one.
 
+The [[learnings/reading-benchmarks|benchmark-reading detour]] derives WTMAD-2, works through a small weighting example and separates different kinds of generalization. This is part of understanding a paper, not an optional exercise after looking at its best number.
+
 Finally, I want the timing boundary stated. The revised Skala paper's computational-cost experiment evaluates XC energy and potential from a supplied density matrix. That is useful evidence about a component of the calculation. It is not identical to timing a full calculation from an initial guess, including all iterations and any convergence recovery. [Skala, computational details](https://arxiv.org/html/2506.14665v6)
 
 ## Where this leaves the investigation
@@ -200,6 +252,10 @@ I am not starting with a proposed new functional. I am starting with a more prec
 The productive next step is a close reading of the breakthroughs, with a notebook open beside the equations. The [[papers/index|paper pages]] separate the original problem, the method, the reported evidence and the remaining limitations. The [[learnings/index|learning pages]] build the mathematical connections rather than assuming them.
 
 There is room for small experiments later: one-electron cancellation, a dissociation curve, a grid-convergence check, a toy functional with accurate values and poor derivatives. Those would be investigations of specific ideas. Nothing on this page reports a new molecular benchmark or a solved challenge.
+
+For now, a useful test of understanding costs no GPU: explain why a hybrid is nonlocal, derive how exchange scales when a density is compressed, and explain how a model can have accurate energies but poor self-consistent behaviour. If those answers are still hazy, the linked detours are the next step. If they are clear, the newest architectures become much less mysterious.
+
+The [[learnings/figure-sources|figure-source note]] distinguishes reused paper figures, original schematics and reported numerical results. The aim is to make both the explanation and its evidence traceable.
 
 ## Sources and scope
 

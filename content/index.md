@@ -1,5 +1,7 @@
 ---
 title: Curiosophy
+date: 2026-11-27
+tags: [notebook]
 ---
 
 Following curiosity, wherever it leads.
