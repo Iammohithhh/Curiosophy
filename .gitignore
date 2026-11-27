@@ -1,0 +1,7 @@
+public/
+.quartz-engine/
+node_modules/
+.DS_Store
+.obsidian/workspace*.json
+private/
+*.pdf
